@@ -98,14 +98,14 @@
     self.hasPendingOperation = YES;
 
 
+
     NSString* url = [command argumentAtIndex:0 withDefault:NULL];
     NSString* data = [command argumentAtIndex:1 withDefault:NULL];
     NSString* type =  [command argumentAtIndex:2 withDefault:@"A4"];
     NSString* _landscape =  [command argumentAtIndex:3 withDefault:@"portrait"];
     NSString* option = [command argumentAtIndex:4 withDefault:@"base64"];
-    NSString* password = [command argumentAtIndex:5 withDefault:@""];
 
-    
+
     BNPageSize pageSize;
     BOOL landscape = NO;
 
@@ -126,7 +126,6 @@
         self.htmlPdfKit = [BNHtmlPdfKit saveUrlAsPdf:[NSURL URLWithString:url]
                                             pageSize:pageSize
                                          isLandscape:landscape
-                                         password:password
                                              success:[self GetPDFHandler:command setOptions:option]
                                              failure:[self GetErrorHandler:command]];
 
@@ -134,7 +133,6 @@
         self.htmlPdfKit = [BNHtmlPdfKit saveHTMLAsPdf:data
                                              pageSize:pageSize
                                           isLandscape:landscape
-                                          password:password
                                               success:[self GetPDFHandler:command setOptions:option]
                                               failure:[self GetErrorHandler:command]];
 }
