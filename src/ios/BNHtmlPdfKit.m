@@ -58,21 +58,31 @@
 
 @implementation BNHtmlPdfKit
 
-+ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url password:(NSString *)password success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
++ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
 
-    return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:[BNHtmlPdfKit defaultPageSize] isLandscape:NO password: password success:completion failure:failure];
-
-}
-
-+ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize password:(NSString *)password success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-
-	return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:pageSize isLandscape:NO password:password success:completion failure:failure];
+	return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:[BNHtmlPdfKit defaultPageSize] isLandscape:NO success:completion failure:failure];
 
 }
 
-+(BNHtmlPdfKit *)saveHTMLAsPdf:(NSString *)html pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape password:(NSString *)password success:(void (^)(NSData *))completion failure:(void (^)(NSError *))failure{
++ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
+
+	return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:pageSize isLandscape:NO success:completion failure:failure];
+
+}
+
++(BNHtmlPdfKit *)saveHTMLAsPdf:(NSString *)html pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape  success:(void (^)(NSData *))completion failure:(void (^)(NSError *))failure{
     
-    BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape password:password];
+    BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
+    pdfKit.dataCompletionBlock = completion;
+    pdfKit.failureBlock = failure;
+    
+    [pdfKit saveHtmlAsPdf:html];
+    return pdfKit;
+}
+
++(BNHtmlPdfKit *)saveHTMLAsPdf:(NSString *)html pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape pass:(NSString *) pass success:(void (^)(NSData *))completion failure:(void (^)(NSError *))failure{
+    
+    BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape pass:pass];
     pdfKit.dataCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     
@@ -82,15 +92,26 @@
 
 
 
-+ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape password:(NSString *)password success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
++ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
 
-	BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape password:password];
+	BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
 	pdfKit.dataCompletionBlock = completion;
 	pdfKit.failureBlock = failure;
 	[pdfKit saveUrlAsPdf:url toFile:nil];
 	return pdfKit;
 
 }
++ (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape pass:(NSString *)pass success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
+
+	BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape pass:pass];
+	pdfKit.dataCompletionBlock = completion;
+	pdfKit.failureBlock = failure;
+	[pdfKit saveUrlAsPdf:url toFile:nil];
+	return pdfKit;
+
+}
+
+
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape topAndBottomMarginSize:(CGFloat)topAndBottom leftAndRightMarginSize:(CGFloat)leftAndRight success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
 
@@ -207,22 +228,11 @@
 	}
 	return self;
 }
+
 - (id)initWithPageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape {
-    if (self = [super init]) {
-        self.pageSize = pageSize;
-        self.landscape = landscape;
-        
-        // Default 1/4" margins
-        self.topAndBottomMarginSize = 0.25f * 72.0f;
-        self.leftAndRightMarginSize = 0.25f * 72.0f;
-    }
-    return self;
-}
-- (id)initWithPageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape password:(NSString *)password  {
 	if (self = [super init]) {
 		self.pageSize = pageSize;
 		self.landscape = landscape;
-        self.password = password;
 
 		// Default 1/4" margins
 		self.topAndBottomMarginSize = 0.25f * 72.0f;
@@ -230,6 +240,19 @@
 	}
 	return self;
 }
+- (id)initWithPageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape pass:(NSString *)pass {
+	if (self = [super init]) {
+		self.pageSize = pageSize;
+		self.landscape = landscape;
+		self.pass = pass;
+
+		// Default 1/4" margins
+		self.topAndBottomMarginSize = 0.25f * 72.0f;
+		self.leftAndRightMarginSize = 0.25f * 72.0f;
+	}
+	return self;
+}
+
 
 - (id)initWithCustomPageSize:(CGSize)pageSize {
 	if (self = [super init]) {
@@ -479,12 +502,13 @@
                                              &kCFTypeDictionaryKeyCallBacks,
                                              &kCFTypeDictionaryValueCallBacks));
     
-    NSLog(@"password %@",self.password);
-    CFDictionarySetValue((__bridge CFMutableDictionaryRef)(myDictionary), kCGPDFContextUserPassword, ((__bridge CFStringRef)self.password));
+    NSLog(@"password %@",self.pass);
+    CFDictionarySetValue((__bridge CFMutableDictionaryRef)(myDictionary), kCGPDFContextUserPassword, ((__bridge CFStringRef)self.pass));
     
-    CFDictionarySetValue((__bridge CFMutableDictionaryRef)(myDictionary), kCGPDFContextOwnerPassword, ((__bridge CFStringRef)self.password));
+    CFDictionarySetValue((__bridge CFMutableDictionaryRef)(myDictionary), kCGPDFContextOwnerPassword, ((__bridge CFStringRef)self.pass));
    
 	UIGraphicsBeginPDFContextToData(currentReportData, pageRect, myDictionary);
+	//UIGraphicsBeginPDFContextToData(currentReportData, pageRect, nil);
 
 	[renderer prepareForDrawingPages:NSMakeRange(0, 1)];
 

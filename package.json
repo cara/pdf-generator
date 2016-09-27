@@ -3,14 +3,14 @@
   "version": "0.9.5",
   "description": "is a HTML to PDF (offline) Generator.",
   "cordova": {
-    "id": "com.html2pdf.password",
+    "id": "com.html2pdf.generator",
     "platforms": [
       "ios"
     ]
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cara/pdf-generator.git"
+    "url": "git+https://github.com/cesarvr/pdf-generator.git"
   },
   "keywords": [
     "ecosystem:cordova",
@@ -25,7 +25,7 @@
   "author": "cesar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cara/pdf-generator/issues"
+    "url": "https://github.com/cesarvr/pdf-generator/issues"
   },
-  "homepage": "https://github.com/cara/pdf-generator#readme"
+  "homepage": "https://github.com/cesarvr/pdf-generator#readme"
 }
